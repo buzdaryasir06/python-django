@@ -1,0 +1,177 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeFlow - User Login</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+   <!--costom icons-->
+    <link rel="icon" type="image/png" href="{% static 'icons/favicon-96x96.png' %}" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'icons/favicon.svg' %}" />
+    <link rel="shortcut icon" href="{% static 'icons/favicon.ico' %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}" />
+    <link rel="manifest" href="{% static 'icons/site.webmanifest' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+ <!-- Custom CSS -->
+    <style>
+        .login-section {
+            background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), 
+                        url('{% static "images/blood-donation-bg.jpg" %}');
+            background-size: cover;
+            background-position: center;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        
+        .login-card {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: none;
+        }
+        
+        .form-control:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.25rem rgba(220,53,69,.25);
+        }
+        
+        .social-login-btn {
+            transition: transform 0.3s;
+            border: 1px solid #dee2e6;
+        }
+        
+        .social-login-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .password-toggle {
+            cursor: pointer;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand text-danger" href="">
+                <img src="{% static 'img/logo.png' %}" alt="LifeFlow" height="40">
+                LifeFlow
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="me-3">New here?</span>
+                <a href="{% url "register" %}" class="btn btn-outline-danger">Create Account</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Section -->
+    <section class="login-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-5">
+                    <div class="login-card card p-4">
+                        <div class="card-body">
+                            <h2 class="mb-4 text-center">Welcome Back</h2>
+                            <p class="text-center text-muted mb-4">Sign in to continue to LifeFlow</p>
+                            
+                            <!-- Integrated alert messages code -->
+                            {% if messages %}
+                            <div class="alert-container">
+                              {% for message in messages %}
+                              <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                              </div>
+                              {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <!-- Existing login form starts here -->
+                            <form method="POST" action="{% url 'user_login' %}">
+                                {% csrf_token %}
+                                
+                                <!-- Email Input -->
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email address</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-envelope"></i>
+                                        </span>
+                                        <input type="email" 
+                                               class="form-control" 
+                                               id="email" 
+                                               name="email"
+                                               placeholder="name@example.com" 
+                                               required>
+                                    </div>
+                                </div>
+
+                                <!-- Password Input -->
+                                <div class="mb-4">
+                                    <label for="password" class="form-label">Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                        <input type="password" 
+                                               class="form-control" 
+                                               id="password" 
+                                               name="password"
+                                               placeholder="Enter your password" 
+                                               required>
+                                        <i class="fas fa-eye password-toggle" 
+                                           onclick="togglePassword()"></i>
+                                    </div>
+                                    <div class="text-end mt-2">
+                                        <a href="" class="text-danger text-decoration-none">
+                                            Forgot Password?
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Remember Me Checkbox -->
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="remember">
+                                    <label class="form-check-label" for="remember">Remember me</label>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <button type="submit" class="btn btn-danger w-100 mb-3">Sign In</button> 
+                            </form>
+                            <!-- Existing login form ends here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js"></script>
+    <script>
+        // Password toggle functionality
+document.getElementById('togglePassword').addEventListener('click', function() {
+  const passwordInput = document.getElementById('password');
+  const icon = this.querySelector('i');
+  
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    icon.classList.replace('fa-eye', 'fa-eye-slash');
+  } else {
+    passwordInput.type = 'password';
+    icon.classList.replace('fa-eye-slash', 'fa-eye');
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!-- templates/create_request.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Create Blood Request</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Blood Type Needed</label>
+                            <select class="form-select" name="blood_type" required>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Units Required</label>
+                            <input type="number" class="form-control" name="units_required" min="1" max="10" value="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Urgency</label>
+                            <select class="form-select" name="urgency" required>
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Additional Information</label>
+                            <textarea class="form-control" name="additional_info" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            <div id="request-map" style="height: 250px; border-radius: 8px;" class="mb-3"></div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Latitude</label>
+                                    <input type="text" class="form-control" id="latitude" name="latitude" readonly>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Longitude</label>
+                                    <input type="text" class="form-control" id="longitude" name="longitude" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">Submit Request</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize map for request location
+document.addEventListener('DOMContentLoaded', function() {
+    const map = L.map('request-map').setView([0, 0], 2);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    
+    let marker = null;
+    
+    map.on('click', function(e) {
+        const {lat, lng} = e.latlng;
+        
+        document.getElementById('latitude').value = lat;
+        document.getElementById('longitude').value = lng;
+        
+        if (marker) {
+            marker.setLatLng(e.latlng);
+        } else {
+            marker = L.marker(e.latlng).addTo(map);
+        }
+    });
+    
+    // Try to get user's current location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            const {latitude, longitude} = position.coords;
+            map.setView([latitude, longitude], 13);
+            
+            if (!marker) {
+                marker = L.marker([latitude, longitude]).addTo(map);
+                document.getElementById('latitude').value = latitude;
+                document.getElementById('longitude').value = longitude;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

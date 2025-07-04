@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Blood Donor App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+ <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #dc3545;
+            --secondary-color: #f8f9fa;
+            --accent-color: #ffc107;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* --- Enhanced Profile Picture Area --- */
+        .profile-header {
+            background: linear-gradient(120deg, #dc3545 60%, #f8f9fa 100%);
+            color: white;
+            padding: 48px 0 36px 0;
+            border-radius: 0 0 32px 32px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+            margin-bottom: 30px;
+            position: relative;
+        }
+        .profile-picture-area {
+            background: linear-gradient(135deg, #fff 60%, #ffeaea 100%);
+            border-radius: 24px;
+            box-shadow: 0 4px 24px rgba(220,53,69,0.10);
+            padding: 32px 16px 16px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .profile-picture {
+            width: 130px;
+            height: 130px;
+            border: 5px solid #fff;
+            box-shadow: 0 4px 16px rgba(220,53,69,0.15);
+            object-fit: cover;
+            background: #fff;
+            transition: all 0.3s;
+            z-index: 2;
+        }
+        .profile-picture-area .edit-icon {
+            position: absolute;
+            bottom: 24px;
+            right: 38px;
+            background: var(--primary-color);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.16);
+            z-index: 3;
+            border: 2px solid #fff;
+        }
+        .profile-picture-area .edit-icon:hover { background: #c82333; }
+        .profile-header .profile-name {
+            margin-top: 18px;
+            font-size: 2rem;
+            font-weight: 600;
+            color: #222;
+            letter-spacing: 0.5px;
+        }
+        .profile-header .profile-meta {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+        .profile-header .blood-type-display {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            background: rgba(220, 53, 69, 0.12);
+            padding: 4px 14px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+        
+        .card-profile {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+            border: none;
+            background: #fff;
+            min-height: 260px;        /* Fixed height for all cards */
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 0;
+        }
+        
+        .card-profile .card-header-profile {
+            background: white;
+            padding: 20px 24px;      /* Fixed padding for header */
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .card-profile .card-body {
+            padding: 24px;           /* Fixed padding for body */
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .contact-item {
+            padding: 12px 0 12px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: background 0.3s ease;
+        }
+        
+        .contact-item:last-child { border-bottom: none; }
+        
+        .contact-item:hover {
+            background-color: rgba(220, 53, 69, 0.05);
+        }
+        
+        .donation-goal {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            border-radius: 12px;
+            padding: 18px 18px 12px 18px;
+            color: #333;
+        }
+        
+        .stats-card {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 15px 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            margin-bottom: 0;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .availability-switch {
+            width: 30px;
+            height: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .card-profile {
+                min-height: 180px;
+            }
+            
+            .card-profile .card-header-profile,
+            .card-profile .card-body {
+                padding: 14px;
+            }
+        }
+        @media (max-width: 767px) {
+            .profile-header {
+                padding: 28px 0 18px 0;
+                border-radius: 0 0 18px 18px;
+            }
+            .profile-picture-area {
+                padding: 18px 8px 8px 8px;
+                border-radius: 14px;
+            }
+            .profile-picture {
+                width: 90px;
+                height: 90px;
+            }
+            .profile-picture-area .edit-icon {
+                width: 30px;
+                height: 30px;
+                bottom: 10px;
+                right: 18px;
+            }
+            .profile-header .profile-name {
+                font-size: 1.3rem;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Enhanced Profile Picture Area -->
+    <header class="profile-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-4 text-center text-md-start mb-4 mb-md-0">
+                    <div class="profile-picture-area mx-auto mx-md-0">
+                        <img src="{{ user.profile_picture.url }}" class="profile-picture rounded-circle" alt="Profile Picture">
+                        <div class="edit-icon">
+                            <i class="fas fa-pencil-alt text-white"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8 text-center text-md-start">
+                    <h1 class="profile-name mb-1">{{ user.get_full_name }}</h1>
+                    <p class="profile-meta mb-3">
+                        <span class="blood-type-display">{{ user.blood_type }}</span>
+                        <span class="badge bg-danger ms-2">{{ user.user_type|title }}</span>
+                    </p>
+                    <div class="d-flex flex-wrap justify-content-center justify-content-md-start">
+                        <div class="stats-card mx-2 mb-2">
+                            <h3 class="mb-0">24</h3>
+                            <small>Donations</small>
+                        </div>
+                        <div class="stats-card mx-2 mb-2">
+                            <h3 class="mb-0">12</h3>
+                            <small>Saved Lives</small>
+                        </div>
+                        <div class="stats-card mx-2 mb-2">
+                            <h3 class="mb-0">5</h3>
+                            <small>Badges</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container py-4">
+        <div class="row justify-content-center align-items-stretch g-4">
+            <!-- Left Column -->
+            <div class="col-12 col-md-5 col-lg-4 d-flex flex-column gap-4">
+                <div class="card-profile flex-fill">
+                    <div class="card-header-profile">
+                        <h5 class="mb-0">Availability Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <h6 class="mb-0">Donation Availability</h6>
+                                <p class="text-muted mb-0">You can receive requests from seekers</p>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input availability-switch" type="checkbox" role="switch" 
+                                       id="availability-switch" checked>
+                                <label class="form-check-label ms-2" for="availability-switch">
+                                    <span class="text-success">Available</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-profile flex-fill">
+                    <div class="card-header-profile">
+                        <h5 class="mb-0">Contact Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li class="contact-item d-flex align-items-center">
+                                <i class="fas fa-phone fa-lg text-danger me-3"></i>
+                                <span>+1 (555) 123-4567</span>
+                            </li>
+                            <li class="contact-item d-flex align-items-center">
+                                <i class="fas fa-envelope fa-lg text-danger me-3"></i>
+                                <span>{{user.email}}</span>
+                            </li>
+                            <li class="contact-item d-flex align-items-center">
+                                <i class="fas fa-map-marker-alt fa-lg text-danger me-3"></i>
+                                <span>{{user.address}}</span>
+                            </li>
+                            <li class="contact-item d-flex align-items-center">
+                                <i class="fas fa-shield-alt fa-lg text-danger me-3"></i>
+                                <span class="text-success">Verified Account</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-profile flex-fill">
+                    <div class="card-header-profile">
+                        <h5 class="mb-0">Donation Goal</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="donation-goal">
+                            <h6 class="mb-3">2025 Donation Goal</h6>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>3 of 6 donations</span>
+                                <span>50%</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar" role="progressbar" style="width: 67%;" 
+                                     aria-valuenow="67" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <p class="mt-3 mb-0">Keep going! You're making a difference.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="col-12 col-md-7 col-lg-8 d-flex flex-column gap-4">
+                <div class="card-profile flex-fill">
+                    <div class="card-header-profile d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">About Me</h5>
+                        <button class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-edit me-1"></i> Edit
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead mb-3">
+                            "I've been donating blood for over 5 years. It's one of the most rewarding things I do. 
+                            Knowing that my donations help save lives keeps me motivated to donate regularly."
+                        </p>
+                        <div class="row mt-4">
+                            <div class="col-12 col-sm-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light p-2 rounded me-3">
+                                        <i class="fas fa-tint fa-2x text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0 text-muted">Blood Type</p>
+                                        <h5 class="mb-0">{{user.blood_type}}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light p-2 rounded me-3">
+                                        <i class="fas fa-calendar-alt fa-2x text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0 text-muted">Last Donation</p>
+                                        <h5 class="mb-0">June 15, 2025</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light p-2 rounded me-3">
+                                        <i class="fas fa-syringe fa-2x text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0 text-muted">Next Eligible</p>
+                                        <h5 class="mb-0">August 15, 2025</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light p-2 rounded me-3">
+                                        <i class="fas fa-heartbeat fa-2x text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0 text-muted">Health Status</p>
+                                        <h5 class="mb-0 text-success">Excellent</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-profile flex-fill">
+                    <div class="card-header-profile">
+                        <h5 class="mb-0">Donation History</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table donation-table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Recipient</th>
+                                        <th>Location</th>
+                                        <th>Status</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Jun 15, 2023</td>
+                                        <td>John Smith</td>
+                                        <td>City Hospital</td>
+                                        <td><span class="badge bg-success">Completed</span></td>
+                                        <td>450ml</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Apr 22, 2023</td>
+                                        <td>Sarah Johnson</td>
+                                        <td>Central Blood Bank</td>
+                                        <td><span class="badge bg-success">Completed</span></td>
+                                        <td>450ml</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Feb 10, 2023</td>
+                                        <td>Community Drive</td>
+                                        <td>Red Cross Center</td>
+                                        <td><span class="badge bg-success">Completed</span></td>
+                                        <td>450ml</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Dec 5, 2022</td>
+                                        <td>Michael Brown</td>
+                                        <td>Regional Medical Center</td>
+                                        <td><span class="badge bg-success">Completed</span></td>
+                                        <td>450ml</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Oct 15, 2022</td>
+                                        <td>Emergency Request</td>
+                                        <td>Children's Hospital</td>
+                                        <td><span class="badge bg-success">Completed</span></td>
+                                        <td>450ml</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-end mt-3">
+                            <button class="btn btn-outline-danger">
+                                <i class="fas fa-history me-2"></i>View Full History
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Availability toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const availabilitySwitch = document.getElementById('availability-switch');
+            if (availabilitySwitch) {
+                availabilitySwitch.addEventListener('change', function() {
+                    const status = this.checked ? 'available' : 'unavailable';
+                    const statusText = this.nextElementSibling.querySelector('span');
+                    
+                    if (this.checked) {
+                        statusText.textContent = 'Available';
+                        statusText.className = 'text-success';
+                        showToast('You are now available for donation requests', 'success');
+                    } else {
+                        statusText.textContent = 'Unavailable';
+                        statusText.className = 'text-danger';
+                        showToast('You are now unavailable for donation requests', 'info');
+                    }
+                });
+            }
+            
+            // Show toast notification
+            function showToast(message, type) {
+                // In a real app, this would show a toast notification
+                console.log(`${type.toUpperCase()}: ${message}`);
+            }
+            
+            // Profile picture edit functionality
+            const editIcon = document.querySelector('.edit-icon');
+            if (editIcon) {
+                editIcon.addEventListener('click', function() {
+                    alert('Profile picture edit feature would open here');
+                    // In a real app, this would open a file upload dialog
+                });
+            }
+        });
+    </script>
+</body>
+</html>

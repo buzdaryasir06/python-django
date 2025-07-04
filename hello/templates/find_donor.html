@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Blood Donors - LifeFlow</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- Custom icons -->
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'icons/favicon-96x96.png' %}" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'icons/favicon.svg' %}" />
+    <link rel="shortcut icon" href="{% static 'icons/favicon.ico' %}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}" />
+    <link rel="manifest" href="{% static 'icons/site.webmanifest' %}" />
+    <style>
+        :root {
+            --primary: #dc3545;
+            --primary-light: #f8d7da;
+            --secondary: #6c757d;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark);
+        }
+        
+        .search-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #a71d2a 100%);
+            color: white;
+            padding: 60px 0 40px;
+            margin-bottom: 30px;
+        }
+        
+        .search-card {
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: none;
+            transition: transform 0.3s ease;
+            background: white;
+        }
+        
+        .search-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .blood-type-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+        
+        .blood-type-btn {
+            flex: 1;
+            min-width: 80px;
+            border: 2px solid #dee2e6;
+            background: white;
+            color: var(--dark);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .blood-type-btn:hover {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+        
+        .blood-type-btn.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .blood-type-btn i {
+            margin-right: 5px;
+        }
+        
+        .search-map {
+            height: 300px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .donor-card {
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+        
+        .donor-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .donor-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+        }
+        
+        .donor-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        
+        .distance-badge {
+            background-color: var(--primary);
+            padding: 5px 10px;
+            border-radius: 20px;
+            color: white;
+        }
+        
+        .availability-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #28a745;
+            border: 2px solid white;
+        }
+        
+        .availability-badge.offline {
+            background-color: var(--secondary);
+        }
+        
+        .stats-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 10px;
+        }
+        
+        .filter-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        
+        @media (max-width: 768px) {
+            .search-header {
+                padding: 40px 0 20px;
+            }
+            
+            .search-map {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Search Header -->
+    <header class="search-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5 fw-bold mb-3">Find Blood Donors</h1>
+                    <p class="lead mb-4">Connect with available donors in your area and save lives</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="distance-badge d-inline-block">
+                        <i class="fas fa-location-dot me-1"></i>
+                        <span id="current-location">Detecting location...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-lg-4 mb-4">
+                <div class="search-card p-4 h-100">
+                    <h3 class="mb-4">Search Filters</h3>
+                    
+                    <div class="mb-4">
+                        <h5 class="mb-3">Blood Type Needed</h5>
+                        <div class="blood-type-selector">
+                            <div class="blood-type-btn active" data-type="A+">
+                                <i class="fas fa-tint"></i> A+
+                            </div>
+                            <div class="blood-type-btn" data-type="A-">
+                                <i class="fas fa-tint"></i> A-
+                            </div>
+                            <div class="blood-type-btn" data-type="B+">
+                                <i class="fas fa-tint"></i> B+
+                            </div>
+                            <div class="blood-type-btn" data-type="B-">
+                                <i class="fas fa-tint"></i> B-
+                            </div>
+                            <div class="blood-type-btn" data-type="AB+">
+                                <i class="fas fa-tint"></i> AB+
+                            </div>
+                            <div class="blood-type-btn" data-type="AB-">
+                                <i class="fas fa-tint"></i> AB-
+                            </div>
+                            <div class="blood-type-btn" data-type="O+">
+                                <i class="fas fa-tint"></i> O+
+                            </div>
+                            <div class="blood-type-btn" data-type="O-">
+                                <i class="fas fa-tint"></i> O-
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="mb-3">Search Radius</h5>
+                        <input type="range" class="form-range" min="1" max="100" value="10" id="radius-range">
+                        <div class="d-flex justify-content-between mt-2">
+                            <span>1 km</span>
+                            <span id="radius-value">10 km</span>
+                            <span>100 km</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="mb-3">Location</h5>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                            <input type="text" class="form-control" placeholder="Enter location" id="location-input">
+                            <button class="btn btn-outline-primary" type="button" id="detect-location">
+                                <i class="fas fa-location-crosshairs"></i>
+                            </button>
+                        </div>
+                        <div class="search-map mb-3" id="search-map"></div>
+                    </div>
+                    
+                    <button class="btn btn-danger w-100 btn-lg" id="search-btn">
+                        <i class="fas fa-search me-2"></i>Search Donors
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Available Donors</h3>
+                    <div class="text-muted">
+                        <span id="donor-count">12</span> donors found
+                    </div>
+                </div>
+                
+                <div class="row" id="donor-results">
+                    <!-- Donor 1 -->
+                    <div class="col-md-6 mb-4">
+                        <div class="donor-card card h-100">
+                            <div class="card-header bg-primary text-white position-relative">
+                                <div class="availability-badge"></div>
+                                <div class="d-flex align-items-center">
+                                    <img src="https://randomuser.me/api/portraits/men/32.jpg" 
+                                         class="donor-img me-3" 
+                                         alt="Donor">
+                                    <div>
+                                        <h5 class="mb-0">John Anderson</h5>
+                                        <div class="d-flex align-items-center mt-1">
+                                            <div class="me-3">
+                                                <i class="fas fa-tint me-1"></i>
+                                                <span>O+</span>
+                                            </div>
+                                            <div>
+                                                <i class="fas fa-location-dot me-1"></i>
+                                                <span>2.5 km</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="stats-icon bg-primary-light text-primary">
+                                        <i class="fas fa-medal"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Donations</div>
+                                        <div class="fw-bold">24</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="stats-icon bg-primary-light text-primary">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Last Donation</div>
+                                        <div class="fw-bold">Jun 15, 2023</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <button class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-comment me-2"></i>Send Message
+                                    </button>
+                                    <button class="btn btn-danger w-100 mt-2">
+                                        <i class="fas fa-phone me-2"></i>Request Blood
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Donor 2 -->
+                    <div class="col-md-6 mb-4">
+                        <div class="donor-card card h-100">
+                            <div class="card-header bg-primary text-white position-relative">
+                                <div class="availability-badge"></div>
+                                <div class="d-flex align-items-center">
+                                    <img src="https://randomuser.me/api/portraits/women/44.jpg" 
+                                         class="donor-img me-3" 
+                                         alt="Donor">
+                                    <div>
+                                        <h5 class="mb-0">Sarah Johnson</h5>
+                                        <div class="d-flex align-items-center mt-1">
+                                            <div class="me-3">
+                                                <i class="fas fa-tint me-1"></i>
+                                                <span>A+</span>
+                                            </div>
+                                            <div>
+                                                <i class="fas fa-location-dot me-1"></i>
+                                                <span>4.2 km</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="stats-icon bg-primary-light text-primary">
+                                        <i class="fas fa-medal"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Donations</div>
+                                        <div class="fw-bold">18</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="stats-icon bg-primary-light text-primary">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Last Donation</div>
+                                        <div class="fw-bold">May 28, 2023</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <button class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-comment me-2"></i>Send Message
+                                    </button>
+                                    <button class="btn btn-danger w-100 mt-2">
+                                        <i class="fas fa-phone me-2"></i>Request Blood
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Donor 3 -->
+                    <div class="col-md-6 mb-4">
+                        <div class="donor-card card h-100">
+                            <div class="card-header bg-primary text-white position-relative">
+                                <div class="availability-badge offline"></div>
+                                <div class="d-flex align-items-center">
+                                    <img src="https://randomuser.me/api/portraits/men/22.jpg" 
+                                         class="donor-img me-3" 
+                                         alt="Donor">
+                                    <div>
+                                        <h5 class="mb-0">Michael Chen</h5>
+                                        <div class="d-flex align-items-center mt-1">
+                                            <div class="me-3">
+                                                <i class="fas fa-tint me-1"></i>
+                                                <span>B-</span>
+                                            </div>
+                                            <div>
+                                                <i class="fas fa-location-dot me-1"></i>
+                                                <span>5.7 km</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="stats-icon bg-primary-light text-primary">
+                                        <i class="fas fa-medal"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Donations</div>
+                                        <div class="fw-bold">32</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="stats-icon bg-primary-light text-primary">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Last Donation</div>
+                                        <div class="fw-bold">Apr 10, 2023</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <button class="btn btn-outline-primary w-100" disabled>
+                                        <i class="fas fa-comment me-2"></i>Send Message
+                                    </button>
+                                    <button class="btn btn-secondary w-100 mt-2" disabled>
+                                        Currently Unavailable
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Donor 4 -->
+                    <div class="col-md-6 mb-4">
+                        <div class="donor-card card h-100">
+                            <div class="card-header bg-primary text-white position-relative">
+                                <div class="availability-badge"></div>
+                                <div class="d-flex align-items-center">
+                                    <img src="https://randomuser.me/api/portraits/women/68.jpg" 
+                                         class="donor-img me-3" 
+                                         alt="Donor">
+                                    <div>
+                                        <h5 class="mb-0">Emma Wilson</h5>
+                                        <div class="d-flex align-items-center mt-1">
+                                            <div class="me-3">
+                                                <i class="fas fa-tint me-1"></i>
+                                                <span>AB+</span>
+                                            </div>
+                                            <div>
+                                                <i class="fas fa-location-dot me-1"></i>
+                                                <span>3.1 km</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="stats-icon bg-primary-light text-primary">
+                                        <i class="fas fa-medal"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Donations</div>
+                                        <div class="fw-bold">12</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="stats-icon bg-primary-light text-primary">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Last Donation</div>
+                                        <div class="fw-bold">Jun 22, 2023</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <button class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-comment me-2"></i>Send Message
+                                    </button>
+                                    <button class="btn btn-danger w-100 mt-2">
+                                        <i class="fas fa-phone me-2"></i>Request Blood
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <nav aria-label="Donor pagination">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <a href="#" class="filter-btn">
+        <i class="fas fa-filter"></i>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map
+            const map = L.map('search-map').setView([0, 0], 2);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            let userMarker = null;
+            
+            // Try to get user's current location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const {latitude, longitude} = position.coords;
+                    map.setView([latitude, longitude], 13);
+                    
+                    if (!userMarker) {
+                        userMarker = L.marker([latitude, longitude]).addTo(map)
+                            .bindPopup('Your current location')
+                            .openPopup();
+                        
+                        // Reverse geocoding to get address
+                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                const address = data.display_name || 'Your location';
+                                document.getElementById('current-location').textContent = address;
+                                document.getElementById('location-input').value = address;
+                            });
+                    }
+                }, error => {
+                    console.error('Error getting location:', error);
+                    document.getElementById('current-location').textContent = 'Location access denied';
+                });
+            } else {
+                document.getElementById('current-location').textContent = 'Geolocation not supported';
+            }
+            
+            // Update radius value display
+            const radiusRange = document.getElementById('radius-range');
+            const radiusValue = document.getElementById('radius-value');
+            
+            radiusRange.addEventListener('input', function() {
+                radiusValue.textContent = `${this.value} km`;
+            });
+            
+            // Blood type selection
+            const bloodTypeBtns = document.querySelectorAll('.blood-type-btn');
+            bloodTypeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    bloodTypeBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Detect location button
+            document.getElementById('detect-location').addEventListener('click', function() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(position => {
+                        const {latitude, longitude} = position.coords;
+                        map.setView([latitude, longitude], 13);
+                        
+                        if (userMarker) {
+                            userMarker.setLatLng([latitude, longitude]);
+                        } else {
+                            userMarker = L.marker([latitude, longitude]).addTo(map)
+                                .bindPopup('Your current location')
+                                .openPopup();
+                        }
+                        
+                        // Reverse geocoding
+                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                const address = data.display_name || 'Your location';
+                                document.getElementById('current-location').textContent = address;
+                                document.getElementById('location-input').value = address;
+                            });
+                    });
+                }
+            });
+            
+            // Search button
+            document.getElementById('search-btn').addEventListener('click', function() {
+                const selectedBloodType = document.querySelector('.blood-type-btn.active').dataset.type;
+                const radius = document.getElementById('radius-range').value;
+                const location = document.getElementById('location-input').value;
+                
+                // Show loading state
+                this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Searching...';
+                
+                // Simulate search
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-search me-2"></i>Search Donors';
+                    
+                    // Update donor count
+                    const donorCount = Math.floor(Math.random() * 4) + 4; // Random count for demo
+                    document.getElementById('donor-count').textContent = donorCount;
+                    
+                    // Show notification
+                    alert(`Found ${donorCount} donors with ${selectedBloodType} blood within ${radius} km`);
+                }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <h1 class="text-success mb-4"><i class="fas fa-check-circle"></i> Email Verified!</h1>
+    <p class="lead">Your account has been successfully verified.</p>
+    <p>You can now login and start using LifeFlow.</p>
+    <a href="{% url 'user_login' %}" class="btn btn-primary mt-3">Continue to Login</a>
+</div>
+{% endblock %}

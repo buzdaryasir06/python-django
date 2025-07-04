@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h3 class="mb-0">Edit Profile</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Profile Picture -->
+                            <div class="col-md-4 mb-4">
+                                <div class="text-center">
+                                    <img id="profile-pic-preview" 
+                                         src="{{ form.instance.profile_picture.url }}" 
+                                         class="rounded-circle mb-3 border border-3 border-danger" 
+                                         width="180" height="180" 
+                                         alt="Profile Preview">
+                                    <div class="mt-2">
+                                        <label for="id_profile_picture" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-camera me-2"></i>Change Photo
+                                        </label>
+                                        {{ form.profile_picture }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Personal Information -->
+                            <div class="col-md-8">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_first_name" class="form-label">First Name</label>
+                                        {{ form.first_name }}
+                                        {% if form.first_name.errors %}
+                                            <div class="text-danger">{{ form.first_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_last_name" class="form-label">Last Name</label>
+                                        {{ form.last_name }}
+                                        {% if form.last_name.errors %}
+                                            <div class="text-danger">{{ form.last_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_email" class="form-label">Email</label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="text-danger">{{ form.email.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_phone" class="form-label">Phone</label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                        <div class="text-danger">{{ form.phone.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_blood_type" class="form-label">Blood Type</label>
+                                    {{ form.blood_type }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <!-- Location -->
+                        <h5 class="mb-3">Location</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_address" class="form-label">Address</label>
+                                {{ form.address }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_city" class="form-label">City</label>
+                                {{ form.city }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_country" class="form-label">Country</label>
+                                {{ form.country }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Set Location on Map</label>
+                            <div id="location-map" style="height: 250px; border-radius: 8px;" class="mb-3"></div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_latitude" class="form-label">Latitude</label>
+                                    {{ form.latitude }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_longitude" class="form-label">Longitude</label>
+                                    {{ form.longitude }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <!-- Bio -->
+                        <div class="mb-4">
+                            <label for="id_bio" class="form-label">About Me</label>
+                            {{ form.bio }}
+                        </div>
+                        
+                        <div class="d-flex justify-content-end">
+                            <a href="{% url 'profile' %}" class="btn btn-outline-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Profile picture preview
+    const profilePicInput = document.getElementById('id_profile_picture');
+    const profilePicPreview = document.getElementById('profile-pic-preview');
+    
+    if (profilePicInput) {
+        profilePicInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profilePicPreview.src = e.target.result;
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+    
+    // Initialize map (Leaflet.js example)
+    function initLocationMap() {
+        const mapElement = document.getElementById('location-map');
+        if (!mapElement) return;
+        
+        // Get initial coordinates
+        let lat = {{ form.latitude.value|default:0 }};
+        let lng = {{ form.longitude.value|default:0 }};
+        
+        // Default to a reasonable location if no coordinates
+        if (!lat || !lng) {
+            lat = 0;
+            lng = 0;
+        }
+        
+        // Initialize map
+        const map = L.map('location-map').setView([lat, lng], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Add marker
+        let marker = null;
+        if (lat && lng) {
+            marker = L.marker([lat, lng]).addTo(map);
+        }
+        
+        // Update marker position on map click
+        map.on('click', function(e) {
+            const {lat, lng} = e.latlng;
+            
+            // Update form fields
+            document.getElementById('id_latitude').value = lat;
+            document.getElementById('id_longitude').value = lng;
+            
+            // Update or create marker
+            if (marker) {
+                marker.setLatLng(e.latlng);
+            } else {
+                marker = L.marker(e.latlng).addTo(map);
+            }
+        });
+    }
+    
+    // Call the map initialization
+    if (typeof L !== 'undefined') {
+        initLocationMap();
+    }
+});
+</script>
+{% endblock %}
