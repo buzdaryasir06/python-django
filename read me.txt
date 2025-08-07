@@ -1,0 +1,91 @@
+# LifeFlow: Blood Donation Platform
+
+LifeFlow is a Django-based web application designed to connect blood donors and recipients efficiently and securely. The platform allows users to register as donors, request blood, search for nearby donors, and manage their profiles. It also features real-time alerts, donor rewards, and robust authentication with social login support.
+
+## Features
+- **User Registration & Login:** Secure authentication with email and password, plus Google social login (via django-allauth).
+- **Donor Registration:** Users can register as blood donors and update their availability.
+- **Find Donor:** Search for compatible blood donors within a 10km radius.
+- **Blood Requests:** Recipients can request blood and get matched with nearby donors.
+- **Real-time Alerts:** Instant notifications for blood requests and matches.
+- **Donor Rewards:** Earn badges and recognition for contributions.
+- **Admin Panel:** Manage users, requests, and donor data via Django admin.
+- **Security:** Brute-force protection with django-axes, password hashing, and session management.
+- **Responsive UI:** Built with Bootstrap 5 and FontAwesome for a modern, mobile-friendly experience.
+
+## Project Structure
+```
+hello/
+  donor_app/         # Main Django app (models, views, forms, urls)
+  hello/             # Project settings, URLs, WSGI/ASGI
+  templates/         # HTML templates (index, login, register, profile, etc.)
+  static/            # Static files (CSS, JS, images, icons)
+  db.sqlite3         # SQLite database (default)
+manage.py            # Django management script
+requirements.txt     # Python dependencies
+new_venv/            # Python virtual environment (recommended)
+```
+
+## How It Was Made
+- **Framework:** Django 5.2.1 (Python 3.12)
+- **Frontend:** Bootstrap 5, FontAwesome
+- **Authentication:** Custom user model (email as username), django-allauth for Google login
+- **Security:** django-axes for brute-force protection
+- **Database:** SQLite (default), can be switched to PostgreSQL
+- **Other:** Pillow for image handling, channels for real-time features
+
+## Installation & Setup
+1. **Clone the repository:**
+   ```
+   git clone <your-repo-url>
+   cd python-django
+   ```
+2. **Create and activate a virtual environment:**
+   ```
+   python -m venv new_venv
+   new_venv\Scripts\activate  # On Windows
+   # or
+   source new_venv/bin/activate  # On Mac/Linux
+   ```
+3. **Install dependencies:**
+   ```
+   pip install -r requirements.txt
+   ```
+4. **Apply migrations:**
+   ```
+   python hello/manage.py migrate
+   ```
+5. **Create a superuser (for admin panel):**
+   ```
+   python hello/manage.py createsuperuser
+   ```
+6. **Run the development server:**
+   ```
+   python hello/manage.py runserver
+   ```
+7. **Access the app:**
+   - Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) in your browser.
+   - Admin panel: [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
+
+## Required Python Packages
+- Django
+- django-allauth
+- django-axes
+- django-ratelimit
+- channels
+- pillow
+- psycopg2-binary (if using PostgreSQL)
+- cryptography
+- PyJWT
+- requests
+
+All dependencies are listed in `requirements.txt`.
+
+## Notes
+- For Google login, set up OAuth credentials and update your Django settings.
+- Static and media files are managed via Django's staticfiles system.
+- For production, configure a secure database and update settings accordingly.
+
+---
+
+**LifeFlow** — Saving lives, one donation at a time.
